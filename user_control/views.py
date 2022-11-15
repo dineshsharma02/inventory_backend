@@ -1,12 +1,21 @@
 from rest_framework.viewsets import ModelViewSet
 from datetime import datetime
-from .serializers import CreateUserSerializer,CustomUser,LoginUserSerializer,UpdatePasswordSerializer,CustomUserSerializer
+from .serializers import CreateUserSerializer,CustomUser,LoginUserSerializer,UpdatePasswordSerializer,CustomUserSerializer, UserActivitySerializer
 from rest_framework import status
 from rest_framework.response import Response
 from inventory_api.utils import get_access_token
 from inventory_api.custom_methods import IsAuthenticatedCustom
-
+from .models import UserActivity
 from rest_framework.authentication import authenticate
+
+
+def add_user_activity(user,action):
+    UserActivity.objects.create(
+        user_id=user.id,
+        email = user.email,
+        fullname = user.fullname,
+        action = action
+    )
 
 class CreateUserView(ModelViewSet):
     http_method_names = ["post"]
@@ -18,7 +27,7 @@ class CreateUserView(ModelViewSet):
         valid_request = self.serializer_class(data = request.data)
         valid_request.is_valid(raise_exception=True)
         CustomUser.objects.create(**valid_request.validated_data)
-
+        add_user_activity(request.user,"Added new user")
         return Response({"Success":"User Created"}, staus=status.HTTP_201_CREATED)
 
 
@@ -56,6 +65,7 @@ class LoginUserView(ModelViewSet):
         access = get_access_token({"user_id":user.id},1)
         user.last_login = datetime.now()
         user.save()
+        add_user_activity(user,"Logged in")
         return Response({"Access":access})
 
 class UpdatePaasswordView(ModelViewSet):
@@ -74,6 +84,7 @@ class UpdatePaasswordView(ModelViewSet):
         user = user[0]
         user.set_password(valid_request.validated_data["password"])
         user.save()
+        add_user_activity(user,"Password Updated")
         return Response({"success":"Password set successfully"})
 
 class MeView(ModelViewSet):
@@ -87,3 +98,21 @@ class MeView(ModelViewSet):
         return Response(data)
 
 
+
+class UserActivityView(ModelViewSet):
+    serializer_class = UserActivitySerializer
+    http_method_names = ["get"]
+    queryset = UserActivity.objects.all()
+    permission_classes = (IsAuthenticatedCustom,)
+
+
+class UsersView(ModelViewSet):
+    serializer_class = CustomUserSerializer
+    http_method_names = ["get"]
+    queryset = CustomUser.objects.all()
+    permission_classes = (IsAuthenticatedCustom,)
+
+    def list(self,request):
+        users = self.queryset().filter(is_superuser=False)
+        data = self.serializer_class(users,many=True).data
+        return Response(data)
