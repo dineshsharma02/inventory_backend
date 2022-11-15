@@ -12,3 +12,12 @@ class LoginUserSerializer(serializers.Serializer):
     password =serializers.CharField()
     is_new_user = serializers.BooleanField(required=False,default=False)
 
+class UpdatePasswordSerializer(serializers.Serializer):
+    user_id = serializers.CharField()
+    password = serializers.CharField()
+
+
+class CustomUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        exclude = ("password",)
