@@ -146,7 +146,7 @@ class Invoice(models.Model):
         add_user_activity(created_by,action = action)
 
 
-class InvoiceItemn(models.Model):
+class InvoiceItem(models.Model):
     invoice = models.ForeignKey(Invoice,related_name="invoice_items",on_delete=models.CASCADE)
     item = models.ForeignKey(Inventory,null=True,related_name="inventory_invoices",on_delete=models.SET_NULL)
     item_name = models.CharField(max_length=255,null=True)
