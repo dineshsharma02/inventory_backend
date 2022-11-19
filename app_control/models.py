@@ -127,7 +127,7 @@ class Shop(models.Model):
 
 
 class Invoice(models.Model):
-    created_by = models.ForeignKey(CustomUser,realted_name= "invoices",null = True, on_delete = models.SET_NULL)
+    created_by = models.ForeignKey(CustomUser,related_name= "invoices",null = True, on_delete = models.SET_NULL)
     shop = models.ForeignKey(Shop,related_name="sale_shop",null = True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(auto_now_add=True)
 
