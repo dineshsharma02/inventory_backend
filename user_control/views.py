@@ -39,7 +39,7 @@ class LoginUserView(ModelViewSet):
     def create(self, request):
         valid_request = self.serializer_class(data = request.data)
         valid_request.is_valid(raise_exception=True)
-        new_user = valid_request.validated_data("is_new_user")
+        new_user = valid_request.validated_data["is_new_user"]
         if new_user:
             user = CustomUser.objects.filter( 
                 valid_request.validated_data["email"]
