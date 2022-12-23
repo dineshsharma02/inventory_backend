@@ -7,6 +7,7 @@ from inventory_api.utils import get_access_token
 from inventory_api.custom_methods import IsAuthenticatedCustom
 from .models import UserActivity
 from rest_framework.authentication import authenticate
+from django.db import IntegrityError
 
 
 def add_user_activity(user,action):
@@ -26,9 +27,15 @@ class CreateUserView(ModelViewSet):
     def create(self,request):
         valid_request = self.serializer_class(data = request.data)
         valid_request.is_valid(raise_exception=True)
-        CustomUser.objects.create(**valid_request.validated_data)
+        try:
+            CustomUser.objects.create(**valid_request.validated_data)
+        except IntegrityError:
+            # raise 
+            # raise IntegrityError(Response({"data":{"error":"User Email Already Registered"}},status=status.HTTP_400_BAD_REQUEST))
+            raise IntegrityError("Duplicate email found!!")
+
         add_user_activity(request.user,"Added new user")
-        return Response({"Success":"User Created"}, staus=status.HTTP_201_CREATED)
+        return Response({"Success":"User Created"},status=status.HTTP_200_OK)
 
 
 class LoginUserView(ModelViewSet):
@@ -113,6 +120,6 @@ class UsersView(ModelViewSet):
     permission_classes = (IsAuthenticatedCustom,)
 
     def list(self,request):
-        users = self.queryset().filter(is_superuser=False)
+        users = self.queryset.filter(is_superuser=False)
         data = self.serializer_class(users,many=True).data
         return Response(data)

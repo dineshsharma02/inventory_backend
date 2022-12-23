@@ -3,7 +3,7 @@ from .models import CustomUser, Roles, UserActivity
 
 class CreateUserSerializer(serializers.Serializer):
     email = serializers.EmailField()
-    password = serializers.CharField()
+    fullname = serializers.CharField()
     role = serializers.ChoiceField(Roles)
 
 
