@@ -9,7 +9,7 @@ class CreateUserSerializer(serializers.Serializer):
 
 class LoginUserSerializer(serializers.Serializer):
     email = serializers.EmailField()
-    password =serializers.CharField()
+    password =serializers.CharField(required = False)
     is_new_user = serializers.BooleanField(required=False,default=False)
 
 class UpdatePasswordSerializer(serializers.Serializer):
