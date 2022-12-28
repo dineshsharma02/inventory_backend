@@ -1,5 +1,5 @@
 from rest_framework.viewsets import ModelViewSet
-from .serializers import (Inventory,InventoryGroup,InventoryGroupSerialzer,InventorySerializer,Shop,ShopSerializer, Invoice, InvoiceItemSerializer,InvoiceSerializer, InventoryWithSumSerializer, ShopWithAmountSerializer, InvoiceItem)
+from .serializers import (Inventory,InventoryGroup,InventoryGroupSerializer,InventorySerializer,Shop,ShopSerializer, Invoice, InvoiceItemSerializer,InvoiceSerializer, InventoryWithSumSerializer, ShopWithAmountSerializer, InvoiceItem)
 from rest_framework.response import Response
 from inventory_api.custom_methods import IsAuthenticatedCustom
 from user_control.models import CustomUser
@@ -35,33 +35,39 @@ class InventoryView(ModelViewSet):
         return super().create(request,*args, **kwargs)
 
 class InventoryGroupView(ModelViewSet):
-    queryset = InventoryGroup.objects.select_related("belongs_to","created_by").prefetch_related("inventories")
-    serializer_class = InventoryGroupSerialzer
+    queryset = InventoryGroup.objects.select_related(
+        "belongs_to", "created_by").prefetch_related("inventories")
+    serializer_class = InventoryGroupSerializer
     permission_classes = (IsAuthenticatedCustom,)
     pagination_class = CustomPagination
 
     def get_queryset(self):
-        if self.request.method.lower()!="get":
+        if self.request.method.lower() != "get":
             return self.queryset
+
         data = self.request.query_params.dict()
-        data.pop("page",None)
-        keyword = data.pop("keyword",None)
+        data.pop("page", None)
+        keyword = data.pop("keyword", None)
+
         results = self.queryset.filter(**data)
+
         if keyword:
             search_fields = (
-                "created_by__fullname","created_by__email","name"
+                "created_by__fullname", "created_by__email", "name"
             )
-            query = get_query(keyword,search_fields)
+            query = get_query(keyword, search_fields)
             results = results.filter(query)
+
+        
+        
         return results.annotate(
-            total_items = Count("inventories")
+            total_items = Count('inventories')
         )
-    
 
-    def create(self,request,*args, **kwargs):
+    def create(self, request, *args, **kwargs):
+        # request.data._mutable=True
         request.data.update({"created_by_id":request.user.id})
-        return super().create(request,*args, **kwargs)
-
+        return super().create(request, *args, **kwargs)
 
 
 class ShopView(ModelViewSet):
