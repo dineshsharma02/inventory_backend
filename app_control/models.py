@@ -43,8 +43,8 @@ class Inventory(models.Model):
         CustomUser, null=True,related_name="inventory_groups" ,
         on_delete=models.SET_NULL
     )
-    code = models.CharField(max_length=10)
-    photo = models.TextField()
+    code = models.CharField(max_length=10,unique=True, null=True)
+    photo = models.TextField(blank=True, null=True)
     group = models.ForeignKey(InventoryGroup, related_name="inventories",null=True, on_delete=models.SET_NULL)
     total = models.PositiveIntegerField()
     remaining = models.PositiveIntegerField(null=True)
