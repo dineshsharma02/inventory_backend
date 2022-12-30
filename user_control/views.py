@@ -3,11 +3,12 @@ from datetime import datetime
 from .serializers import CreateUserSerializer,CustomUser,LoginUserSerializer,UpdatePasswordSerializer,CustomUserSerializer, UserActivitySerializer
 from rest_framework import status
 from rest_framework.response import Response
-from inventory_api.utils import get_access_token
+from inventory_api.utils import get_access_token,get_query
 from inventory_api.custom_methods import IsAuthenticatedCustom
 from .models import UserActivity
 from rest_framework.authentication import authenticate
 from django.db import IntegrityError
+from inventory_api.utils import CustomPagination
 
 
 def add_user_activity(user,action):
@@ -111,6 +112,23 @@ class UserActivityView(ModelViewSet):
     http_method_names = ["get"]
     queryset = UserActivity.objects.all()
     permission_classes = (IsAuthenticatedCustom,)
+    pagination_class = CustomPagination
+
+    def get_queryset(self):
+        if self.request.method.lower()!="get":
+            return self.queryset
+        data = self.request.query_params.dict()
+        data.pop("page",None)
+        keyword = data.pop("keyword",None)
+        results = self.queryset.filter(**data)
+        if keyword:
+            search_fields = (
+                "fullname","email","action"
+            )
+            query = get_query(keyword,search_fields)
+            results = results.filter(query)
+
+        return results
 
 
 class UsersView(ModelViewSet):
@@ -119,7 +137,20 @@ class UsersView(ModelViewSet):
     queryset = CustomUser.objects.all()
     permission_classes = (IsAuthenticatedCustom,)
 
-    def list(self,request):
-        users = self.queryset.filter(is_superuser=False)
-        data = self.serializer_class(users,many=True).data
-        return Response(data)
+    def get_queryset(self):
+        if self.request.method.lower()!="get":
+            return self.queryset
+        data = self.request.query_params.dict()
+        data.pop("page",None)
+        keyword = data.pop("keyword",None)
+        results = self.queryset.filter(**data,is_superuser = False)
+        if keyword:
+            search_fields = (
+                "fullname","email","role"
+            )
+            query = get_query(keyword,search_fields)
+            results = results.filter(query)
+
+        return results
+    
+
