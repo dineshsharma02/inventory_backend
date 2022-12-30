@@ -34,7 +34,7 @@ class InventorySerializer(serializers.ModelSerializer):
 class InventoryWithSumSerializer(InventorySerializer):
     sum_of_item = serializers.IntegerField()
 
-class ShopSerializer(serializers.Serializer):
+class ShopSerializer(serializers.ModelSerializer):
     created_by = CustomUserSerializer(read_only = True)
     created_by_id = serializers.CharField(write_only = True, required = False)
     amount_total =  serializers.CharField(read_only = True, required = False)
