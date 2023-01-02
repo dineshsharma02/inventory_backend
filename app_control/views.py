@@ -229,7 +229,7 @@ class PurchaseView(ModelViewSet):
                 )        
 
         query = query.aggregate(
-            amount_total = Sum(F('amount') * F('quantity')),total = Sum('qunatity')
+            amount_total = Sum(F('amount') * F('quantity')),total = Sum('quantity')
             )
 
         return Response({
