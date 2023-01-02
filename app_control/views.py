@@ -177,32 +177,35 @@ class SaleByShopView(ModelViewSet):
     queryset = InventoryView.queryset
 
     def list(self, request, *args, **kwargs):
-        query_data = request.query_params.dict()
-        total = query_data.get('total',None)
-        monthly = query_data.get('monthly',None)
+        query_data = request.query_params.dict() 
+        total = query_data.get('total', None)
+        monthly = query_data.get('monthly', None)
         query = ShopView.queryset
 
         if not total:
-            start_date = query_data.get("start_date",None)
-            end_date = query_data.get("end_date",None)
+            start_date = query_data.get("start_date", None)
+            end_date = query_data.get("end_date", None)
 
             if start_date:
                 query = query.filter(
-                    sale_shop__created_at__range = [start_date,end_date]
+                    sale_shop__created_at__range=[start_date, end_date]
                 )
 
         if monthly:
-            shops = query.annotate(month = TruncMonth('created_at')).values(
-                'month','name').annotate(amount_total = Sum(
-                    F("sale_shop__invoice_items__quantity") * F("sale_shop__invoice_items__amount")
+            shops = query.annotate(month=TruncMonth('created_at')).values(
+                'month', 'name').annotate(amount_total=Sum(
+                    F("sale_shop__invoice_items__quantity") * 
+                    F("sale_shop__invoice_items__amount")
                 ))
-        else:
-            shops = query.annotate(amount_total = Sum(
-                F("sale_shop__invoices_items__quantity") * F("sale_shop__invoice_items__amount") 
-            )).order_by("amount_total")
 
-            response_data = ShopWithAmountSerializer(shops,many = True).data
-            return Response(response_data)
+        else:
+            shops = query.annotate(amount_total=Sum(
+                    F("sale_shop__invoice_items__quantity") * 
+                    F("sale_shop__invoice_items__amount")
+                )).order_by("-amount_total")
+
+        response_data = ShopWithAmountSerializer(shops, many=True).data
+        return Response(response_data)
 
 
 class PurchaseView(ModelViewSet):
